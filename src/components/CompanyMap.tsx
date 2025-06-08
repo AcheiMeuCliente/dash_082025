@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Doc, Id } from "../../convex/_generated/dataModel";
 
 interface CompanyMapProps {
@@ -9,6 +9,8 @@ interface CompanyMapProps {
 
 export function CompanyMap({ companies, selectedCompanyId, onCompanySelect }: CompanyMapProps) {
   const [stateDistribution, setStateDistribution] = useState<Record<string, number>>({});
+  const mapRef = useRef<HTMLDivElement>(null);
+  const markersRef = useRef<any[]>([]);
 
   useEffect(() => {
     const distribution = companies.reduce((acc, company) => {
@@ -18,7 +20,20 @@ export function CompanyMap({ companies, selectedCompanyId, onCompanySelect }: Co
     setStateDistribution(distribution);
   }, [companies]);
 
+  useEffect(() => {
+    // Initialize map when component mounts
+    if (mapRef.current) {
+      initializeMap();
+    }
+  }, []);
 
+  useEffect(() => {
+    // Update markers when companies change
+    updateMarkers();
+  }, [companies, selectedCompanyId]);
+
+  const initializeMap = () => {
+    if (mapRef.current) {
       mapRef.current.innerHTML = `
         <div class="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center">
           <div class="text-center">
@@ -67,7 +82,10 @@ export function CompanyMap({ companies, selectedCompanyId, onCompanySelect }: Co
       </div>
       
       <div className="p-4">
-        <div className="w-full h-96 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center">
+        <div 
+          ref={mapRef}
+          className="w-full h-96 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center"
+        >
           <div className="text-center">
             <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
